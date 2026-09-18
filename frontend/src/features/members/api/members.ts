@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Member, MemberForm } from "../../shared/types/member";
 
-const API_URL = "http://localhost:5000/api/members";
+const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/members`;
 
 // helper
 const getToken = () => localStorage.getItem("token");
@@ -51,7 +51,7 @@ export const createMember = async (form: MemberForm) => {
 
 // ================= UPDATE MEMBER =================
 export const updateMember = async (id: number, data: any) => {
-  const res = await fetch(`http://localhost:5000/api/members/${id}`, {
+  const res = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

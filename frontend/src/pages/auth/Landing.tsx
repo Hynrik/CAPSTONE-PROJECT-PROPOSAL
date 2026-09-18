@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import api from "../../features/shared/api/axios";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await api.post("/auth/login", {
         username,
         password
       });
@@ -42,13 +42,7 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/verify-otp",
-        {
-          adminId,
-          otp
-        }
-      );
+      const res = await api.post("/auth/verify-otp", { adminId, otp });
 
       const { token, role, permissions } = res.data;
 
