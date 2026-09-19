@@ -11,6 +11,14 @@ function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+const getDatabaseErrorMessage = (error: unknown) => {
+  if (error && typeof error === "object" && "message" in error) {
+    return String((error as { message: unknown }).message);
+  }
+
+  return String(error);
+};
+
 /* =========================
    STEP 1: LOGIN (REQUEST OTP)
 ========================= */
@@ -24,7 +32,13 @@ export const login = (req: Request, res: Response) => {
     "SELECT * FROM users WHERE username = ?",
     [username],
     async (err, results: any[]) => {
-      if (err) return res.status(500).json(err);
+      if (err) {
+        const message = getDatabaseErrorMessage(err);
+        console.error("LOGIN USER QUERY ERROR:", message);
+        return res.status(500).json({
+          message: `Login database query failed: ${message}`
+        });
+      }
 
       if (results.length === 0) {
         // record failed login attempt (unknown username)
@@ -58,7 +72,12 @@ export const login = (req: Request, res: Response) => {
 
       db.query(
         "INSERT INTO otp_codes (admin_id, otp, expires_at) VALUES (?, ?, ?)",
-        [user.id, otp, expiresAt]
+        [user.id, otp, expiresAt],
+        (otpErr) => {
+          if (otpErr) {
+            console.error("CREATE OTP ERROR:", getDatabaseErrorMessage(otpErr));
+          }
+        }
       );
 
       try {
@@ -98,7 +117,13 @@ export const verifyOtp = (req: Request, res: Response) => {
      ORDER BY created_at DESC LIMIT 1`,
     [adminId, otp],
     (err, results: any[]) => {
-      if (err) return res.status(500).json(err);
+      if (err) {
+        const message = getDatabaseErrorMessage(err);
+        console.error("VERIFY OTP QUERY ERROR:", message);
+        return res.status(500).json({
+          message: `OTP database query failed: ${message}`
+        });
+      }
 
       if (results.length === 0) {
         try {
@@ -131,7 +156,13 @@ export const verifyOtp = (req: Request, res: Response) => {
         "SELECT role, username FROM users WHERE id = ?",
         [adminId],
         (err2, results: any[]) => {
-          if (err2) return res.status(500).json(err2);
+          if (err2) {
+            const message = getDatabaseErrorMessage(err2);
+            console.error("GET LOGIN USER ERROR:", message);
+            return res.status(500).json({
+              message: `Login user lookup failed: ${message}`
+            });
+          }
 
           const user = results?.[0];
 

@@ -26,13 +26,16 @@ api.interceptors.response.use(
       const serverMessage =
         typeof responseData === "string"
           ? responseData
-          : responseData?.message;
+          : responseData?.message ||
+            (responseData
+              ? JSON.stringify(responseData)
+              : undefined);
 
       if (error.response) {
         error.message = `${method} ${requestUrl} failed (${status}): ${
           typeof serverMessage === "string" && serverMessage.trim()
             ? serverMessage
-            : "The server returned an error without a message."
+            : "The server returned an empty error response."
         }`;
       } else if (!error.response) {
         error.message = `${method} ${requestUrl} failed: Unable to reach the server. ${
