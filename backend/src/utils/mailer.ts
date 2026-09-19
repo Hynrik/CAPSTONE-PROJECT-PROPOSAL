@@ -17,7 +17,7 @@ export const sendOtpEmail = async (to: string, otp: string) => {
     throw new Error("The user account does not have a valid email address.");
   }
 
-  const transporter = nodemailer.createTransport({
+  const transportOptions = {
     host,
     port,
     secure: process.env.SMTP_SECURE?.toLowerCase() === "true" || port === 465,
@@ -25,7 +25,12 @@ export const sendOtpEmail = async (to: string, otp: string) => {
       user: username,
       pass: password,
     },
-  });
+  };
+
+  // Render may not have IPv6 connectivity; Nodemailer passes this to Node's socket.
+  Object.assign(transportOptions, { family: 4 });
+
+  const transporter = nodemailer.createTransport(transportOptions);
 
   await transporter.sendMail({
     from,
