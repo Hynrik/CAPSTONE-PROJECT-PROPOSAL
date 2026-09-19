@@ -19,6 +19,17 @@ export default function AdminLogin() {
   // STEP 1: LOGIN
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!username.trim()) {
+      alert("Please enter your username.");
+      return;
+    }
+
+    if (!password) {
+      alert("Please enter your password.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -30,7 +41,7 @@ export default function AdminLogin() {
       setAdminId(res.data.adminId);
       setStep(2);
     } catch (err: any) {
-      alert(err.response?.data?.message || "Login failed");
+      alert(err.message || "Login failed. Please check your username and password.");
     } finally {
       setLoading(false);
     }
@@ -39,6 +50,12 @@ export default function AdminLogin() {
   // STEP 2: VERIFY OTP
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!otp.trim()) {
+      alert("Please enter the OTP sent to your email.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -65,7 +82,7 @@ export default function AdminLogin() {
       }
 
     } catch (err: any) {
-      alert(err.response?.data?.message || "Invalid OTP");
+      alert(err.message || "Invalid OTP. Please try again.");
     } finally {
       setLoading(false);
     }
