@@ -1,47 +1,24 @@
 import nodemailer from "nodemailer";
 
 export const sendOtpEmail = async (to: string, otp: string) => {
-  const host = process.env.SMTP_HOST?.trim();
-  const port = Number(process.env.SMTP_PORT || 587);
-  const username = process.env.SMTP_USER?.trim();
-  const password = process.env.SMTP_PASS?.trim();
-  const from = process.env.SMTP_FROM?.trim() || username;
-  const secure = process.env.SMTP_SECURE?.toLowerCase() === "true" || port === 465;
-
-  if (!host || !Number.isInteger(port) || port < 1 || port > 65535 || !username || !password || !from) {
-    throw new Error(
-      "SMTP configuration is invalid. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and SMTP_FROM."
-    );
-  }
-
-  if (!to || !to.includes("@")) {
-    throw new Error("The user account does not have a valid email address.");
-  }
-
   const transportOptions = {
-    host,
-    port,
-    secure,
-    requireTLS: !secure && port === 587,
-    connectionTimeout: 15000,
-    greetingTimeout: 15000,
-    socketTimeout: 15000,
-    tls: {
-      minVersion: "TLSv1.2" as const,
-    },
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      requireTLS: true,
     auth: {
-      user: username,
-      pass: password,
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
     },
   };
 
-  // Render may not have IPv6 connectivity; Nodemailer passes this to Node's socket.
+    // Render may not have IPv6 connectivity.
   Object.assign(transportOptions, { family: 4 });
 
   const transporter = nodemailer.createTransport(transportOptions);
 
   await transporter.sendMail({
-    from,
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to,
     subject: "AIPGEF OTP Verification",
     html: `
