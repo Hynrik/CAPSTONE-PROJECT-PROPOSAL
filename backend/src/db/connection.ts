@@ -3,11 +3,13 @@ import dotenv from "dotenv";
 
 dotenv.config(); // MUST be on top
 
-const useSsl = process.env.DB_SSL === "true";
+const dbPort = Number(process.env.DB_PORT || 3306);
+const useSsl =
+  process.env.DB_SSL?.toLowerCase() === "true" || dbPort === 4000;
 
 export const db = mysql.createPool({
   host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT || 3306),
+  port: dbPort,
   user: process.env.DB_USER || process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME || process.env.DB_DATABASE,

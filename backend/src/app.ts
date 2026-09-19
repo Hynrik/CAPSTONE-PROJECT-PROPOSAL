@@ -12,9 +12,22 @@ import usersRoutes from "./routes/users.routes";
 
 const app = express();
 
+const allowedOrigins = process.env.FRONTEND_URLS
+	?.split(",")
+	.map((origin) => origin.trim())
+	.filter(Boolean);
+
 // MIDDLEWARES
-app.use(cors());
+app.use(
+	cors({
+		origin: allowedOrigins?.length ? allowedOrigins : true,
+	})
+);
 app.use(express.json());
+
+app.get("/health", (_req, res) => {
+	res.json({ status: "ok" });
+});
 
 // ROUTES
 app.use("/api/auth", authRoutes);
