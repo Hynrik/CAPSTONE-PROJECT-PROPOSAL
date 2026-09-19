@@ -6,10 +6,11 @@ export const sendOtpEmail = async (to: string, otp: string) => {
   const username = process.env.SMTP_USER?.trim();
   const password = process.env.SMTP_PASS?.trim();
   const from = process.env.SMTP_FROM?.trim() || username;
+  const secure = process.env.SMTP_SECURE?.toLowerCase() === "true" || port === 465;
 
-  if (!host || !username || !password || !from) {
+  if (!host || !Number.isInteger(port) || port < 1 || port > 65535 || !username || !password || !from) {
     throw new Error(
-      "SMTP configuration is incomplete. Set SMTP_HOST, SMTP_USER, SMTP_PASS, and SMTP_FROM."
+      "SMTP configuration is invalid. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and SMTP_FROM."
     );
   }
 
@@ -20,7 +21,14 @@ export const sendOtpEmail = async (to: string, otp: string) => {
   const transportOptions = {
     host,
     port,
-    secure: process.env.SMTP_SECURE?.toLowerCase() === "true" || port === 465,
+    secure,
+    requireTLS: !secure && port === 587,
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 15000,
+    tls: {
+      minVersion: "TLSv1.2" as const,
+    },
     auth: {
       user: username,
       pass: password,
