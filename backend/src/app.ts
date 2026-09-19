@@ -18,6 +18,7 @@ app.use(express.json());
 
 // ROUTES
 app.use("/api/auth", authRoutes);
+app.use("/auth", authRoutes);
 app.use("/api/members", memberRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/funeral-assistance", funeralAssistanceRoutes);
