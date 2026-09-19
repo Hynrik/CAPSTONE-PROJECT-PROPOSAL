@@ -12,11 +12,29 @@ function generateOTP() {
 }
 
 const getDatabaseErrorMessage = (error: unknown) => {
-  if (error && typeof error === "object" && "message" in error) {
-    return String((error as { message: unknown }).message);
+  if (error && typeof error === "object") {
+    const databaseError = error as {
+      code?: unknown;
+      errno?: unknown;
+      sqlState?: unknown;
+      sqlMessage?: unknown;
+      message?: unknown;
+    };
+    const details = [
+      databaseError.code,
+      databaseError.errno,
+      databaseError.sqlState,
+      databaseError.sqlMessage || databaseError.message,
+    ]
+      .filter((detail) => detail !== undefined && detail !== null && String(detail).trim())
+      .map(String);
+
+    if (details.length > 0) {
+      return details.join(" | ");
+    }
   }
 
-  return String(error);
+  return "Unknown database error. Check the Render database environment variables and logs.";
 };
 
 /* =========================
