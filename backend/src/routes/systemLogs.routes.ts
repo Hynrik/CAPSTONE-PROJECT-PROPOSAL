@@ -1,12 +1,12 @@
 import express from "express";
-import { verifyToken } from "../middleware/auth.middleware";
+import { AuthRequest, verifyToken } from "../middleware/auth.middleware";
 import { db } from "../db/connection";
 
 const router = express.Router();
 
 // GET /api/system-logs
 // Query params: page, limit, userId, action, startDate, endDate
-router.get("/", verifyToken, async (req, res) => {
+router.get("/", verifyToken, async (req: AuthRequest, res) => {
   try {
     // only superadmin can read logs
     const role = req.user?.role;
