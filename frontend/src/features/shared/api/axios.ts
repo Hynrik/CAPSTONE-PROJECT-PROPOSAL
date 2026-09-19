@@ -19,13 +19,34 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (axios.isAxiosError(error)) {
-      const serverMessage = error.response?.data?.message;
+      const method = error.config?.method?.toUpperCase() || "REQUEST";
+      const requestUrl = error.config?.url || "unknown URL";
+      const status = error.response?.status;
+      const responseData = error.response?.data;
+      const serverMessage =
+        typeof responseData === "string"
+          ? responseData
+          : responseData?.message;
 
-      if (typeof serverMessage === "string" && serverMessage.trim()) {
-        error.message = serverMessage;
+      if (error.response) {
+        error.message = `${method} ${requestUrl} failed (${status}): ${
+          typeof serverMessage === "string" && serverMessage.trim()
+            ? serverMessage
+            : "The server returned an error without a message."
+        }`;
       } else if (!error.response) {
-        error.message = "Unable to reach the server. Please try again.";
+        error.message = `${method} ${requestUrl} failed: Unable to reach the server. ${
+          error.message || "Check the API URL and backend status."
+        }`;
       }
+
+      console.error("API request failed:", {
+        method,
+        url: requestUrl,
+        status,
+        response: responseData,
+        error: error.message
+      });
     }
 
     return Promise.reject(error);
