@@ -80,38 +80,51 @@ export const createDeathEvent = (req: any, res: any) => {
     WHERE id = ?
   `;
 
-  db.beginTransaction((txErr) => {
-    if (txErr) {
-      console.error("BEGIN TRANSACTION ERROR:", txErr);
+  db.getConnection((connectionErr, connection) => {
+    if (connectionErr) {
+      console.error("GET TRANSACTION CONNECTION ERROR:", connectionErr);
       return res.status(500).json({
         message: "Failed to create death event",
-        error: txErr,
+        error: connectionErr,
       });
     }
 
-    db.query(existingEventSql, [memberId], (checkErr, existingRows: any[]) => {
-      if (checkErr) {
-        console.error("CHECK DEATH EVENT ERROR:", checkErr);
-        return db.rollback(() => {
-          res.status(500).json({
-            message: "Failed to create death event",
-            error: checkErr,
-          });
+    connection.beginTransaction((txErr) => {
+      if (txErr) {
+        connection.release();
+        console.error("BEGIN TRANSACTION ERROR:", txErr);
+        return res.status(500).json({
+          message: "Failed to create death event",
+          error: txErr,
         });
       }
 
+      connection.query(existingEventSql, [memberId], (checkErr, existingRows: any[]) => {
+        if (checkErr) {
+          console.error("CHECK DEATH EVENT ERROR:", checkErr);
+          return connection.rollback(() => {
+            connection.release();
+            res.status(500).json({
+              message: "Failed to create death event",
+              error: checkErr,
+            });
+          });
+        }
+
       if (existingRows.length > 0) {
-        return db.rollback(() => {
+        return connection.rollback(() => {
+          connection.release();
           res.status(409).json({
             message: "A death event already exists for this member",
           });
         });
       }
 
-      db.query(insertSql, [memberId, dateOfDeath], (insertErr, result: ResultSetHeader) => {
+      connection.query(insertSql, [memberId, dateOfDeath], (insertErr, result: ResultSetHeader) => {
         if (insertErr) {
           console.error("CREATE DEATH EVENT ERROR:", insertErr);
-          return db.rollback(() => {
+          return connection.rollback(() => {
+            connection.release();
             res.status(500).json({
               message: "Failed to create death event",
               error: insertErr,
@@ -119,10 +132,11 @@ export const createDeathEvent = (req: any, res: any) => {
           });
         }
 
-        db.query(updateMemberSql, [memberId], (updateErr) => {
+        connection.query(updateMemberSql, [memberId], (updateErr) => {
           if (updateErr) {
             console.error("UPDATE MEMBER STATUS ERROR:", updateErr);
-            return db.rollback(() => {
+            return connection.rollback(() => {
+              connection.release();
               res.status(500).json({
                 message: "Failed to update member status",
                 error: updateErr,
@@ -130,10 +144,11 @@ export const createDeathEvent = (req: any, res: any) => {
             });
           }
 
-          db.commit((commitErr) => {
+          connection.commit((commitErr) => {
             if (commitErr) {
               console.error("COMMIT ERROR:", commitErr);
-              return db.rollback(() => {
+              return connection.rollback(() => {
+                connection.release();
                 res.status(500).json({
                   message: "Failed to create death event",
                   error: commitErr,
@@ -150,12 +165,15 @@ export const createDeathEvent = (req: any, res: any) => {
               }
             );
 
+            connection.release();
+
             res.status(201).json({
               message: "Death event created",
               id: result.insertId,
             });
           });
         });
+      });
       });
     });
   });

@@ -5,12 +5,17 @@ dotenv.config(); // MUST be on top
 
 const useSsl = process.env.DB_SSL === "true";
 
-export const db = mysql.createConnection({
+export const db = mysql.createPool({
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT || 3306),
   user: process.env.DB_USER || process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME || process.env.DB_DATABASE,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
   ssl: useSsl
     ? {
         minVersion: "TLSv1.2",
@@ -19,10 +24,11 @@ export const db = mysql.createConnection({
     : undefined,
 });
 
-db.connect((err) => {
+db.getConnection((err, connection) => {
   if (err) {
     console.error("❌ DB connection failed:", err);
   } else {
     console.log("✅ DB connected successfully");
+    connection.release();
   }
 });
