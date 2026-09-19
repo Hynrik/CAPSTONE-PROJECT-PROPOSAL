@@ -102,7 +102,8 @@ export const login = (req: Request, res: Response) => {
         await sendOtpEmail(user.email, otp);
         console.log("✅ OTP email sent to:", user.email);
       } catch (emailErr) {
-        console.error("❌ Failed to send OTP email:", emailErr);
+        const message = emailErr instanceof Error ? emailErr.message : String(emailErr);
+        console.error("❌ Failed to send OTP email:", message);
         return res.status(500).json({ message: "Unable to send verification email. Please contact an administrator." });
       }
 

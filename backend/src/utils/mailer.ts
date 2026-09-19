@@ -1,18 +1,34 @@
 import nodemailer from "nodemailer";
 
 export const sendOtpEmail = async (to: string, otp: string) => {
+  const host = process.env.SMTP_HOST?.trim();
+  const port = Number(process.env.SMTP_PORT || 587);
+  const username = process.env.SMTP_USER?.trim();
+  const password = process.env.SMTP_PASS?.trim();
+  const from = process.env.SMTP_FROM?.trim() || username;
+
+  if (!host || !username || !password || !from) {
+    throw new Error(
+      "SMTP configuration is incomplete. Set SMTP_HOST, SMTP_USER, SMTP_PASS, and SMTP_FROM."
+    );
+  }
+
+  if (!to || !to.includes("@")) {
+    throw new Error("The user account does not have a valid email address.");
+  }
+
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: Number(process.env.SMTP_PORT || 587) === 465,
+    host,
+    port,
+    secure: process.env.SMTP_SECURE?.toLowerCase() === "true" || port === 465,
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user: username,
+      pass: password,
     },
   });
 
   await transporter.sendMail({
-    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    from,
     to,
     subject: "AIPGEF OTP Verification",
     html: `
