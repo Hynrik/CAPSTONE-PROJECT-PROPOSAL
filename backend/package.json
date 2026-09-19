@@ -21,9 +21,7 @@
     "mysql2": "^3.22.0",
     "nodemailer": "^8.0.5",
     "otp-generator": "^4.0.1",
-    "speakeasy": "^2.0.0"
-  },
-  "devDependencies": {
+    "speakeasy": "^2.0.0",
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
