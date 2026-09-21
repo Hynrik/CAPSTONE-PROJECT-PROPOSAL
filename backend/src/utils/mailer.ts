@@ -1,24 +1,30 @@
 import nodemailer from "nodemailer";
 
 export const sendOtpEmail = async (to: string, otp: string) => {
+  const host = process.env.SMTP_HOST || "smtp.gmail.com";
+  const port = Number(process.env.SMTP_PORT || 587);
+  const secure = process.env.SMTP_SECURE?.toLowerCase() === "true" || port === 465;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (!user || !pass) {
+    throw new Error("SMTP_USER and SMTP_PASS must be configured in the backend environment");
+  }
+
   const transportOptions = {
-      host: process.env.SMTP_HOST || "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      requireTLS: true,
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
+    host,
+    port,
+    secure,
+    requireTLS: !secure,
+    auth: { user, pass },
   };
 
-    // Render may not have IPv6 connectivity.
   Object.assign(transportOptions, { family: 4 });
 
   const transporter = nodemailer.createTransport(transportOptions);
 
   await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    from: process.env.SMTP_FROM || user,
     to,
     subject: "AIPGEF OTP Verification",
     html: `
