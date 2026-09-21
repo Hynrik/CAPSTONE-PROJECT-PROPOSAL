@@ -22,7 +22,6 @@ import {
 import {
   getFundEvents,
   createFundEvent,
-  updateFundEvent,
 } from "../controllers/funeralassistance/fundEvents.controller";
 
 /* ================= MIDDLEWARE ================= */
@@ -68,6 +67,5 @@ router.get("/active-members-for-month", verifyToken, getActiveMembersForMonth);
 
 router.get("/fund-events", verifyToken, getFundEvents);
 router.post("/fund-events", verifyToken, createFundEvent);
-router.patch("/fund-events/:id", verifyToken, updateFundEvent);
 
 export default router;

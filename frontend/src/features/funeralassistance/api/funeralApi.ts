@@ -157,16 +157,3 @@ export const createFundEventAPI = (data: {
     method: "POST",
     body: data,
   });
-
-export const updateFundEventAPI = (id: number, data: {
-  fundType: FundType;
-  event: string;
-  description: string;
-  amount: number;
-  eventDate: string;
-  status: FundEvent["status"];
-}) =>
-  request(`/funeral-assistance/fund-events/${id}`, {
-    method: "PATCH",
-    body: data,
-  });

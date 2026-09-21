@@ -37,7 +37,7 @@ export default function Sidebar() {
       <div className="p-3 border-bottom border-light">
         <h4 className="mb-0 fw-bold">
           <i className="bi bi-bank2 me-2"></i>
-          IPG PRIDE
+          AIPGE
         </h4>
         <small className="text-light opacity-75">
           Cooperative System
