@@ -3,7 +3,7 @@ import { Resend } from "resend";
 
 export const sendOtpEmail = async (to: string, otp: string) => {
   const resendApiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM || process.env.SMTP_FROM;
+  const resendFrom = process.env.RESEND_FROM;
   const html = `
       <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px; background: #ffffff;">
         <h2 style="margin-bottom: 12px; color: #111827;">Your OTP code</h2>
@@ -16,12 +16,12 @@ export const sendOtpEmail = async (to: string, otp: string) => {
     `;
 
   if (resendApiKey) {
-    if (!from) {
+    if (!resendFrom) {
       throw new Error("RESEND_FROM must be configured when using Resend");
     }
 
     const { error } = await new Resend(resendApiKey).emails.send({
-      from,
+      from: resendFrom,
       to,
       subject: "AIPGEF OTP Verification",
       html,
@@ -57,7 +57,7 @@ export const sendOtpEmail = async (to: string, otp: string) => {
   const transporter = nodemailer.createTransport(transportOptions);
 
   await transporter.sendMail({
-    from: from || user,
+    from: process.env.SMTP_FROM || user,
     to,
     subject: "AIPGEF OTP Verification",
     html,
