@@ -10,10 +10,13 @@ router.get("/totals", (req, res) => {
       m.id,
       m.member_since,
       m.status,
-      COALESCE(SUM(p.amount), 0) AS paid_total
+      COALESCE(p.paid_total, 0) AS paid_total
     FROM members m
-    LEFT JOIN payments p ON p.member_id = m.id
-    GROUP BY m.id
+    LEFT JOIN (
+      SELECT member_id, SUM(amount) AS paid_total
+      FROM payments
+      GROUP BY member_id
+    ) p ON p.member_id = m.id
   `;
 
   db.query(sql, (err, results: any[]) => {
