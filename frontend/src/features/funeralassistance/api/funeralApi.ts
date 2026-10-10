@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import API_BASE_URL from "../../shared/api/baseUrl";
+
+const BASE_URL = API_BASE_URL;
 
 /* ================= TYPES ================= */
 

@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Member, MemberForm } from "../../shared/types/member";
+import API_BASE_URL from "../../shared/api/baseUrl";
 
-const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/members`;
+const API_URL = `${API_BASE_URL}/members`;
 
 // helper
 const getToken = () => localStorage.getItem("token");
