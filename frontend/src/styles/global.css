@@ -352,7 +352,7 @@ img {
 .analytics-status-dot { border-radius: 50%; height: 9px; width: 9px; }
 .analytics-status-dot--active { background: #198754; }
 .analytics-status-dot--inactive { background: #6c757d; }
-.analytics-status-dot--pending { background: #ffc107; }
+.analytics-status-dot--deceased { background: #dc3545; }
 
 @media (max-width: 767px) {
   .profile-page__header { align-items: start !important; flex-direction: column; }

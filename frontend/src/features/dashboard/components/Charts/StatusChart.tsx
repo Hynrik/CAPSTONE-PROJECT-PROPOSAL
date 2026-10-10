@@ -24,7 +24,7 @@ interface Props {
 }
 
 export default function StatusChart({ counts }: Props) {
-  const labels = ["Active", "Inactive", "Pending"];
+  const labels = ["Active", "Inactive", "Deceased"];
   const resolved = counts ?? [98, 12, 10];
 
   const data = {

@@ -8,7 +8,7 @@ export default function Analytics() {
 
   const [trendLabels, setTrendLabels] = useState<string[]>([]);
   const [trendData, setTrendData] = useState<number[]>([]);
-  const [memberStats, setMemberStats] = useState({ active: 0, inactive: 0, pending: 0 });
+  const [memberStats, setMemberStats] = useState({ active: 0, inactive: 0, deceased: 0 });
   const [totals, setTotals] = useState({ totalPayments: 0, totalMembers: 0, activeMembers: 0, pendingBalance: 0 });
   const [paymentCount, setPaymentCount] = useState(0);
 
@@ -35,7 +35,7 @@ export default function Analytics() {
         setMemberStats({
           active: memberRes.data.active || 0,
           inactive: memberRes.data.inactive || 0,
-          pending: memberRes.data.pending || 0,
+          deceased: memberRes.data.deceased || 0,
         });
 
         setPaymentCount(paymentsRes.data?.count || 0);
@@ -86,11 +86,11 @@ export default function Analytics() {
     new Chart(statusRef.current, {
       type: "doughnut",
       data: {
-        labels: ["Active", "Inactive", "Pending"],
+        labels: ["Active", "Inactive", "Deceased"],
         datasets: [
           {
-            data: [memberStats.active, memberStats.inactive, memberStats.pending],
-            backgroundColor: ["#198754", "#6c757d", "#ffc107"],
+            data: [memberStats.active, memberStats.inactive, memberStats.deceased],
+            backgroundColor: ["#198754", "#6c757d", "#dc3545"],
             borderWidth: 0,
           },
         ],
@@ -183,7 +183,7 @@ export default function Analytics() {
             <div className="analytics-status-list">
               <div><span className="analytics-status-dot analytics-status-dot--active" />Active <strong>{memberStats.active}</strong></div>
               <div><span className="analytics-status-dot analytics-status-dot--inactive" />Inactive <strong>{memberStats.inactive}</strong></div>
-              <div><span className="analytics-status-dot analytics-status-dot--pending" />Pending <strong>{memberStats.pending}</strong></div>
+              <div><span className="analytics-status-dot analytics-status-dot--deceased" />Deceased <strong>{memberStats.deceased}</strong></div>
             </div>
           </div>
         </div>

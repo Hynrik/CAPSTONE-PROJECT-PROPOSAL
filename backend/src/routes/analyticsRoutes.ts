@@ -160,7 +160,7 @@ router.get("/member-stats", (req, res) => {
     res.json({
       active: map['active'] || 0,
       inactive: map['inactive'] || 0,
-      pending: map['pending'] || 0,
+      deceased: map['deceased'] || 0,
     });
   });
 });

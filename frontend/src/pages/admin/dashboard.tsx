@@ -43,7 +43,7 @@ export default function Dashboard() {
         });
 
         setPaymentsTrend({ labels: paymentsRes.data.labels || [], data: paymentsRes.data.data || [] });
-        setMemberStats([memberRes.data.active || 0, memberRes.data.inactive || 0, memberRes.data.pending || 0]);
+        setMemberStats([memberRes.data.active || 0, memberRes.data.inactive || 0, memberRes.data.deceased || 0]);
 
         // fetch recent payments (latest 5)
         try {
