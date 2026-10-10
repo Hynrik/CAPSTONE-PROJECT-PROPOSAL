@@ -4,6 +4,9 @@ import { Resend } from "resend";
 export const sendOtpEmail = async (to: string, otp: string) => {
   const resendApiKey = process.env.RESEND_API_KEY;
   const resendFrom = process.env.RESEND_FROM;
+  const mailProvider =
+    process.env.MAIL_PROVIDER?.toLowerCase() ||
+    (resendApiKey ? "resend" : "smtp");
   const html = `
       <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px; background: #ffffff;">
         <h2 style="margin-bottom: 12px; color: #111827;">Your OTP code</h2>
@@ -15,7 +18,11 @@ export const sendOtpEmail = async (to: string, otp: string) => {
       </div>
     `;
 
-  if (resendApiKey) {
+  if (mailProvider === "resend") {
+    if (!resendApiKey) {
+      throw new Error("RESEND_API_KEY must be configured when MAIL_PROVIDER=resend");
+    }
+
     if (!resendFrom) {
       throw new Error("RESEND_FROM must be configured when using Resend");
     }
@@ -32,6 +39,10 @@ export const sendOtpEmail = async (to: string, otp: string) => {
     }
 
     return;
+  }
+
+  if (mailProvider !== "smtp") {
+    throw new Error("MAIL_PROVIDER must be either 'resend' or 'smtp'");
   }
 
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
