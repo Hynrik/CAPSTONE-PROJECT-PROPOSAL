@@ -39,5 +39,12 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/system-logs", systemLogsRoutes);
 app.use("/api/users", usersRoutes);
 
+// Backward-compatible aliases for frontend builds configured without the /api suffix.
+app.use("/members", memberRoutes);
+app.use("/payments", paymentRoutes);
+app.use("/funeral-assistance", funeralAssistanceRoutes);
+app.use("/analytics", analyticsRoutes);
+app.use("/system-logs", systemLogsRoutes);
+app.use("/users", usersRoutes);
 
 export default app;
