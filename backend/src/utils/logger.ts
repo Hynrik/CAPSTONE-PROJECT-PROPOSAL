@@ -49,7 +49,7 @@ export const logAction = (
     `;
 
     const uid = user?.id ?? null;
-    const role = user?.role ?? null;
+    const role = user?.role === "superadmin" ? "superadmin" : "admin";
 
     db.query(sql, [action, desc, uid, role], (err) => {
       if (err) {
