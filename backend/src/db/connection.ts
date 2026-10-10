@@ -31,6 +31,22 @@ db.getConnection((err, connection) => {
     console.error("❌ DB connection failed:", err);
   } else {
     console.log("✅ DB connected successfully");
-    connection.release();
+    connection.query(
+      `SELECT
+        DATABASE() AS databaseName,
+        (SELECT COUNT(*) FROM members) AS memberCount,
+        (SELECT COUNT(*) FROM payments) AS paymentCount`,
+      (queryErr, results: any[]) => {
+        if (queryErr) {
+          console.error("DB data check failed:", queryErr.message);
+        } else {
+          const counts = results[0];
+          console.log(
+            `DB data check: database=${counts.databaseName}, members=${counts.memberCount}, payments=${counts.paymentCount}`
+          );
+        }
+        connection.release();
+      }
+    );
   }
 });
