@@ -257,7 +257,10 @@ const inputClass = (field: string) =>
       {/* PERSONAL */}
       <h6 className="member-form__section mt-3">Personal Details</h6>
 
-      <input type="date" name="birthDate" value={form.birthDate || ""} className={inputClass("birthDate")} onChange={handleChange} />
+      <div className="col-12 col-md-6">
+        <label className="form-label" htmlFor="member-birth-date">Date of Birth</label>
+        <input id="member-birth-date" type="date" name="birthDate" value={form.birthDate || ""} className={inputClass("birthDate")} onChange={handleChange} />
+      </div>
       <input name="birthPlace" value={form.birthPlace || ""} className="form-control" placeholder="Birth Place" onChange={handleChange} />
       <input name="civilStatus" value={form.civilStatus || ""} className={inputClass("civilStatus")} placeholder="Civil Status" onChange={handleChange} />
 
@@ -273,7 +276,10 @@ const inputClass = (field: string) =>
       <input name="position" value={form.position || ""} className={inputClass("position")} placeholder="Position" onChange={handleChange} />
       <input name="office" value={form.office || ""} className={inputClass("office")} placeholder="Office" onChange={handleChange} />
       <input name="salaryGrade" value={form.salaryGrade || ""} className="form-control" placeholder="Salary Grade" onChange={handleChange} />
-      <input type="date" name="originalAppointment" value={form.originalAppointment || ""} className="form-control" onChange={handleChange} />
+      <div className="col-12 col-md-6">
+        <label className="form-label" htmlFor="member-original-appointment">Original Appointment Date</label>
+        <input id="member-original-appointment" type="date" name="originalAppointment" value={form.originalAppointment || ""} className="form-control" onChange={handleChange} />
+      </div>
 
       {/* CONTACT */}
       <h6 className="member-form__section mt-3">Contact</h6>
@@ -287,7 +293,10 @@ const inputClass = (field: string) =>
       {/* OTHER */}
       <h6 className="member-form__section mt-3">Other</h6>
 
-      <input type="date" name="memberSince" value={form.memberSince || ""} className={inputClass("memberSince")} onChange={handleChange} />
+      <div className="col-12 col-md-6">
+        <label className="form-label" htmlFor="member-since">Member Since</label>
+        <input id="member-since" type="date" name="memberSince" value={form.memberSince || ""} className={inputClass("memberSince")} onChange={handleChange} />
+      </div>
       <input name="cscEligibility" value={form.cscEligibility || ""} className="form-control" placeholder="CSC Eligibility" onChange={handleChange} />
       <input name="bloodType" value={form.bloodType || ""} className="form-control" placeholder="Blood Type" onChange={handleChange} />
       <input name="tin" value={form.tin || ""} className="form-control" placeholder="TIN" onChange={handleChange} />
@@ -317,7 +326,10 @@ const inputClass = (field: string) =>
       {form.spouse.enabled && (
         <>
           <input value={form.spouse.name || ""} className="form-control" placeholder="Spouse Name" onChange={(e) => updateSpouse("name", e.target.value)} />
-          <input type="date" value={form.spouse.birthDate || ""} className="form-control" onChange={(e) => updateSpouse("birthDate", e.target.value)} />
+          <div className="col-12 col-md-6">
+            <label className="form-label" htmlFor="spouse-birth-date">Spouse Date of Birth</label>
+            <input id="spouse-birth-date" type="date" value={form.spouse.birthDate || ""} className="form-control" onChange={(e) => updateSpouse("birthDate", e.target.value)} />
+          </div>
 
           <label>
             <input type="checkbox" checked={form.spouse.isBeneficiary} onChange={(e) => updateSpouse("isBeneficiary", e.target.checked)} /> Beneficiary
@@ -331,7 +343,10 @@ const inputClass = (field: string) =>
       {form.children.map((c, i) => (
         <div key={i} className="row g-2">
           <input value={c.name || ""} className="form-control" placeholder="Name" onChange={(e) => updateArray("children", i, "name", e.target.value)} />
-          <input type="date" value={c.birthDate || ""} className="form-control" onChange={(e) => updateArray("children", i, "birthDate", e.target.value)} />
+          <div className="col-12 col-md-6">
+            <label className="form-label" htmlFor={`child-birth-date-${i}`}>Child Date of Birth</label>
+            <input id={`child-birth-date-${i}`} type="date" value={c.birthDate || ""} className="form-control" onChange={(e) => updateArray("children", i, "birthDate", e.target.value)} />
+          </div>
 
           <label>
             <input type="checkbox" checked={c.isBeneficiary} onChange={(e) => updateArray("children", i, "isBeneficiary", e.target.checked)} /> Beneficiary
@@ -351,7 +366,10 @@ const inputClass = (field: string) =>
       {form.parents.map((p, i) => (
         <div key={i} className="row g-2">
           <input value={p.name || ""} className="form-control" placeholder="Name" onChange={(e) => updateArray("parents", i, "name", e.target.value)} />
-          <input type="date" value={p.birthDate || ""} className="form-control" onChange={(e) => updateArray("parents", i, "birthDate", e.target.value)} />
+          <div className="col-12 col-md-6">
+            <label className="form-label" htmlFor={`parent-birth-date-${i}`}>Parent Date of Birth</label>
+            <input id={`parent-birth-date-${i}`} type="date" value={p.birthDate || ""} className="form-control" onChange={(e) => updateArray("parents", i, "birthDate", e.target.value)} />
+          </div>
 
           <label>
             <input type="checkbox" checked={p.isBeneficiary} onChange={(e) => updateArray("parents", i, "isBeneficiary", e.target.checked)} /> Beneficiary
