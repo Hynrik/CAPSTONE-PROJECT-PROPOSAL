@@ -369,7 +369,11 @@ const fieldError = (field: string, message: string) =>
         <label className="form-label" htmlFor="member-since">Member Since</label>
         <input id="member-since" type="date" name="memberSince" value={form.memberSince || ""} className={inputClass("memberSince")} onChange={handleChange} />
       </div>
-      <input name="cscEligibility" value={form.cscEligibility || ""} className="form-control" placeholder="CSC Eligibility" onChange={handleChange} />
+      <select name="cscEligibility" value={form.cscEligibility || ""} className="form-select" onChange={handleChange}>
+        <option value="">Select CSC Eligibility (optional)</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
       <input name="bloodType" value={form.bloodType || ""} className="form-control" placeholder="Blood Type" onChange={handleChange} />
       <input name="tin" value={form.tin || ""} className="form-control" placeholder="TIN" onChange={handleChange} />
 

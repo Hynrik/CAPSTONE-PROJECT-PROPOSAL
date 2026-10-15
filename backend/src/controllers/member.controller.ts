@@ -4,6 +4,12 @@ import { logAction } from "../utils/logger";
 import type { MemberDTO } from "../types/member.dto";
 import {generateMemberCode} from "../utils/memberCode";
 
+const nullableDate = (value?: string | null) =>
+  value && value !== "0000-00-00" ? value : null;
+
+const validCscEligibility = (value?: string | null) =>
+  value === "yes" || value === "no" ? value : null;
+
 export const createMember = (req: Request, res: Response) => {
   const data: MemberDTO = req.body;
   const user = (req as any).user;
@@ -70,7 +76,7 @@ export const createMember = (req: Request, res: Response) => {
     firstName,
     middleName,
     suffix,
-    birthDate,
+    nullableDate(birthDate),
     birthPlace,
     civilStatus,
     sex,
@@ -80,8 +86,8 @@ export const createMember = (req: Request, res: Response) => {
     salaryGrade,
     presentAddress,
     permanentAddress,
-    memberSince,
-    cscEligibility,
+    nullableDate(memberSince),
+    validCscEligibility(cscEligibility),
     bloodType,
     tin,
     mobile,
@@ -285,7 +291,7 @@ export const updateMember = (req: Request, res: Response) => {
     firstName,
     middleName,
     suffix,
-    birthDate,
+    nullableDate(birthDate),
     birthPlace,
     civilStatus,
     sex,
@@ -295,8 +301,8 @@ export const updateMember = (req: Request, res: Response) => {
     salaryGrade,
     presentAddress,
     permanentAddress,
-    memberSince,
-    cscEligibility,
+    nullableDate(memberSince),
+    validCscEligibility(cscEligibility),
     bloodType,
     tin,
     mobile,
