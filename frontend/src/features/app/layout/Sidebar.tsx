@@ -34,7 +34,8 @@ export default function Sidebar() {
     <div className="sidebar d-flex flex-column min-vh-100">
 
       {/* ================= HEADER ================= */}
-      <div className="p-3 border-bottom border-light">
+      <div className="sidebar__header p-3 border-bottom border-light">
+        <div className="sidebar__brand">
         <h4 className="mb-0 fw-bold">
           <i className="bi bi-bank2 me-2"></i>
           AIPGE
@@ -42,10 +43,19 @@ export default function Sidebar() {
         <small className="text-light opacity-75">
           Cooperative System
         </small>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="sidebar-logout-mobile"
+          aria-label="Log out"
+          title="Log out"
+        >
+          <i className="bi bi-box-arrow-right" aria-hidden="true"></i>
+        </button>
       </div>
 
       {/* ================= NAVIGATION ================= */}
-      <nav className="mt-4 flex-grow-1">
+      <nav className="sidebar__nav mt-4 flex-grow-1" aria-label="Main navigation">
 
         {/* ================= ADMIN + SUPERADMIN ================= */}
         {isAdmin && (
@@ -111,7 +121,7 @@ export default function Sidebar() {
       </nav>
 
       {/* ================= LOGOUT ================= */}
-      <div className="p-3 border-top border-light">
+      <div className="sidebar-footer p-3 border-top border-light">
         <button
           onClick={handleLogout}
           className="btn btn-danger w-100 btn-sm"
