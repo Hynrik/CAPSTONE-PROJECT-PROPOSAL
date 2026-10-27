@@ -338,20 +338,27 @@ export const deleteMember = (req: Request, res: Response) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  // delete relations first
-  db.query("DELETE FROM spouses WHERE member_id = ?", [id]);
-  db.query("DELETE FROM children WHERE member_id = ?", [id]);
-  db.query("DELETE FROM parents WHERE member_id = ?", [id]);
+  if (typeof id !== "string" || !/^\d+$/.test(id) || Number(id) < 1) {
+    return res.status(400).json({ message: "Invalid member ID" });
+  }
 
-  // delete member
-  db.query("DELETE FROM members WHERE id = ?", [id], (err) => {
+  db.query("DELETE FROM members WHERE id = ?", [id], (err, result: any) => {
     if (err) {
       console.error("DELETE MEMBER ERROR:", err);
+      if (err.code === "ER_ROW_IS_REFERENCED_2" || err.code === "ER_ROW_IS_REFERENCED") {
+        return res.status(409).json({
+          message: "This member has payment or assistance history and cannot be deleted.",
+        });
+      }
       return res.status(500).json({ message: "Failed to delete member" });
     }
 
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Member not found" });
+    }
+
     logAction("DELETE_MEMBER", `Deleted member ID ${id}`, {
-      id: user.adminId,
+      id: user.id,
       role: user.role,
     });
 

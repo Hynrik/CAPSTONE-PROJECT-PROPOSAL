@@ -69,3 +69,18 @@ export const updateMember = async (id: number, data: any) => {
 
   return result;
 };
+
+// ================= DELETE MEMBER =================
+export const deleteMember = async (id: number): Promise<void> => {
+  const res = await fetch(`${API_URL}/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  if (!res.ok) {
+    const result = await res.json().catch(() => null);
+    throw new Error(result?.message || "Failed to delete member");
+  }
+};

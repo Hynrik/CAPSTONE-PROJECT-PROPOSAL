@@ -26,9 +26,8 @@ export default function Payments() {
 
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
 
-  /* ================= SEARCH ================= */
   const [search, setSearch] = useState("");
-  const [monthFilter, setMonthFilter] = useState("");
+  const [pendingOnly, setPendingOnly] = useState(false);
 
   /* ================= RBAC ================= */
   const permissions = usePermissions();
@@ -58,46 +57,87 @@ export default function Payments() {
     [members]
   );
 
-  /* ================= FILTER MEMBERS ================= */
+  const normalizedSearch = search.trim().toLocaleLowerCase();
+
+  const memberRows = useMemo(() => {
+    const paidByMember = new Map<number, number>();
+    payments.forEach((payment) => {
+      paidByMember.set(
+        Number(payment.memberId),
+        (paidByMember.get(Number(payment.memberId)) ?? 0) + Number(payment.amount || 0)
+      );
+    });
+
+    return members.map((member) => {
+      const start = member.memberSince ? new Date(member.memberSince) : null;
+      const now = new Date();
+      const monthsActive = start && !Number.isNaN(start.getTime())
+        ? Math.max(
+            0,
+            (now.getFullYear() - start.getFullYear()) * 12 +
+              now.getMonth() - start.getMonth() +
+              1
+          )
+        : 0;
+      const expected = monthsActive * 100;
+      const paid = paidByMember.get(Number(member.id)) ?? 0;
+
+      return {
+        member,
+        balance: Math.max(0, expected - paid),
+      };
+    });
+  }, [members, payments]);
+
   const filteredMembers = useMemo(() => {
-    return members.filter((m) => {
-      if (!search.trim()) return true;
+    const results = memberRows.filter(({ member, balance }) => {
+      const matchesSearch = !normalizedSearch || [
+        `${member.firstName ?? ""} ${member.lastName ?? ""}`,
+        member.member_code ?? "",
+      ].some((value) => value.toLocaleLowerCase().includes(normalizedSearch));
 
-      const fullName = `${m.firstName ?? ""} ${m.lastName ?? ""}`.toLowerCase();
-      return fullName.includes(search.toLowerCase());
+      return matchesSearch && (!pendingOnly || balance > 0);
     });
-  }, [members, search]);
 
-  /* ================= FILTER PAYMENTS ================= */
+    return pendingOnly ? results.sort((a, b) => b.balance - a.balance) : results;
+  }, [memberRows, normalizedSearch, pendingOnly]);
+
   const filteredPayments = useMemo(() => {
-    const memberIds = new Set(filteredMembers.map((m) => m.id));
+    if (!normalizedSearch) return payments;
 
-    return payments.filter((p: Payment) => {
-      const matchMember = memberIds.has(p.memberId);
+    const matchingMemberIds = new Set(
+      memberRows
+        .filter(({ member }) =>
+          [
+            `${member.firstName ?? ""} ${member.lastName ?? ""}`,
+            member.member_code ?? "",
+          ].some((value) => value.toLocaleLowerCase().includes(normalizedSearch))
+        )
+        .map(({ member }) => Number(member.id))
+    );
 
-      const matchSelected =
-        selectedMemberId ? p.memberId === selectedMemberId : true;
+    return payments.filter((payment) => matchingMemberIds.has(Number(payment.memberId)));
+  }, [payments, memberRows, normalizedSearch]);
 
-      return matchMember && matchSelected;
-    });
-  }, [payments, filteredMembers, selectedMemberId]);
+  const recentPayments = useMemo(
+    () =>
+      [...filteredPayments]
+        .sort(
+          (a, b) =>
+            new Date(b.paymentDate).getTime() -
+            new Date(a.paymentDate).getTime()
+        )
+        .slice(0, 5),
+    [filteredPayments]
+  );
 
-  /* ================= RECENT PAYMENTS ================= */
-  const recentPayments = useMemo(() => {
-    return [...filteredPayments]
-      .filter((p) => {
-        if (!p.paymentDate) return false;
-        if (!monthFilter) return true;
-        return p.paymentDate.startsWith(monthFilter);
-      })
-      .sort(
-        (a, b) =>
-          new Date(b.paymentDate).getTime() -
-          new Date(a.paymentDate).getTime()
-      )
-      .slice(0, 5);
-  }, [filteredPayments, monthFilter]);
-
+  const selectedMemberPayments = useMemo(
+    () => selectedMemberId === null
+      ? []
+      : payments.filter((payment) => Number(payment.memberId) === Number(selectedMemberId)),
+    [payments, selectedMemberId]
+  );
+  const pendingMemberCount = memberRows.filter(({ balance }) => balance > 0).length;
   const memberCount = filteredMembers.length;
   const paymentCount = filteredPayments.length;
   const selectedMemberLabel = selectedMemberId ? getMemberName(selectedMemberId) : "All members";
@@ -140,19 +180,26 @@ export default function Payments() {
       {loading && <div className="alert alert-info payments-alert">Loading payments...</div>}
       {error && <div className="alert alert-danger payments-alert">{error}</div>}
 
-      <div className="card border-0 shadow-sm mb-4 payments-filter-panel">
-        <div className="card-body p-3 p-lg-4">
-          <div className="row g-3 align-items-end">
-            <div className="col-lg-7">
-              <label className="form-label payments-filter-label"><i className="bi bi-search me-2" />Search member</label>
-              <div className="payments-input-wrap"><i className="bi bi-person-search" /><input className="form-control" placeholder="Search by member name" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
-            </div>
-
-            <div className="col-lg-5">
-              <label className="form-label payments-filter-label"><i className="bi bi-calendar3 me-2" />Payment month</label>
-              <input type="month" className="form-control" value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)} />
-            </div>
-          </div>
+      <div className="payments-toolbar mb-4">
+        <div className="payments-search">
+          <i className="bi bi-search" aria-hidden="true" />
+          <input
+            className="form-control"
+            aria-label="Search members"
+            placeholder="Search by member name or code"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+          {search && (
+            <button
+              className="payments-search-clear"
+              type="button"
+              aria-label="Clear member search"
+              onClick={() => setSearch("")}
+            >
+              <i className="bi bi-x-lg" aria-hidden="true" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -190,7 +237,7 @@ export default function Payments() {
                     {recentPayments.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="text-center text-muted py-3">
-                          No payments yet
+                          No payments found for this search
                         </td>
                       </tr>
                     ) : (
@@ -216,12 +263,25 @@ export default function Payments() {
         <div className="col-xl-4">
           <div className="card border-0 shadow-sm h-100 payments-panel">
             <div className="card-body p-4">
-              <div className="d-flex justify-content-between align-items-center mb-3">
+              <div className="payments-directory-heading d-flex justify-content-between align-items-center mb-3">
                 <div>
                   <div className="payments-section-kicker">Member directory</div>
                   <h5 className="fw-bold mb-1">Members</h5>
-                  <p className="text-muted small mb-0">{selectedMemberId ? `Viewing ${selectedMemberLabel}` : `Showing ${memberCount} members`}</p>
+                  <p className="text-muted small mb-0">
+                    {selectedMemberId ? `Viewing ${selectedMemberLabel}` : `${memberCount} members`}
+                    {pendingOnly && " · highest balance first"}
+                  </p>
                 </div>
+                <button
+                  className={`btn btn-sm ${pendingOnly ? "btn-danger" : "btn-outline-danger"}`}
+                  type="button"
+                  aria-pressed={pendingOnly}
+                  onClick={() => setPendingOnly((current) => !current)}
+                >
+                  <i className="bi bi-exclamation-circle me-1" aria-hidden="true" />
+                  {pendingOnly ? "Show all" : "Show pending"}
+                  <span className="badge text-bg-light ms-1">{pendingMemberCount}</span>
+                </button>
               </div>
 
               <div className="table-responsive" style={{ maxHeight: 350 }}>
@@ -229,8 +289,8 @@ export default function Payments() {
                   <thead>
                     <tr>
                       <th className="border-0">Name</th>
-                      <th className="border-0">Status</th>
-                      <th className="border-0" style={{ width: 160 }}>Action</th>
+                      <th className="border-0 text-end">Balance</th>
+                      <th className="border-0 text-end">Action</th>
                     </tr>
                   </thead>
 
@@ -238,17 +298,18 @@ export default function Payments() {
                     {filteredMembers.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="text-center text-muted py-3">
-                          No members found
+                          {pendingOnly ? "No members have a pending balance" : "No members match your search"}
                         </td>
                       </tr>
                     ) : (
-                      filteredMembers.map((m) => (
-                        <tr key={m.id}>
-                          <td className="fw-semibold">{m.firstName} {m.lastName}</td>
+                      filteredMembers.map(({ member: m, balance }) => (
+                        <tr key={m.id} className={balance > 0 ? "payments-member-pending" : ""}>
                           <td>
-                            <span className={`badge rounded-pill ${m.status === "deceased" ? "bg-danger-subtle text-danger-emphasis" : "bg-success-subtle text-success-emphasis"}`}>
-                              {m.status || "Active"}
-                            </span>
+                            <div className="fw-semibold">{m.firstName} {m.lastName}</div>
+                            <small className="text-muted">{m.member_code || "Member"}</small>
+                          </td>
+                          <td className={`text-end fw-semibold ${balance > 0 ? "text-danger" : "text-success"}`}>
+                            ₱{balance.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </td>
                           <td>
                             <button
@@ -281,7 +342,7 @@ export default function Payments() {
       <ViewPaymentsModal
         show={showView}
         onClose={() => setShowView(false)}
-        payments={filteredPayments}
+        payments={selectedMemberPayments}
         memberName={selectedMemberId ? getMemberName(selectedMemberId) : ""}
         membershipStartDate={
           selectedMemberId

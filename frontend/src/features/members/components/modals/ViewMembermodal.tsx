@@ -8,6 +8,8 @@ interface Props {
   onClose: () => void;
   member: Member | null;
   onUpdate: (data: MemberForm) => Promise<void>;
+  onDelete: () => Promise<void>;
+  canDelete: boolean;
 }
 
 export default function ViewMemberModal({
@@ -15,8 +17,13 @@ export default function ViewMemberModal({
   onClose,
   member,
   onUpdate,
+  onDelete,
+  canDelete,
 }: Props) {
   const [showEdit, setShowEdit] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   if (!member) return null;
 
@@ -102,6 +109,19 @@ export default function ViewMemberModal({
     alert("Failed to update member");
   }
 };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    setDeleteError("");
+
+    try {
+      await onDelete();
+    } catch (err) {
+      console.error("Error deleting member:", err);
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete member");
+      setDeleting(false);
+    }
+  };
 
  return (
   <>
@@ -192,21 +212,70 @@ export default function ViewMemberModal({
             </div>
           </div>
 
+          {confirmDelete && (
+            <div className="alert alert-danger mt-3 mb-0" role="alert">
+              <div className="fw-bold">Delete this member permanently?</div>
+              <div className="small mt-1">
+                This cannot be undone. Members with payment or assistance history cannot be deleted.
+              </div>
+              {deleteError && <div className="small fw-semibold mt-2">{deleteError}</div>}
+              <div className="d-flex flex-wrap gap-2 mt-3">
+                <button
+                  className="btn btn-danger btn-sm"
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? "Deleting..." : "Confirm Delete"}
+                </button>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  onClick={() => {
+                    setConfirmDelete(false);
+                    setDeleteError("");
+                  }}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
         </div>
 
         {/* ================= FIXED ACTION BAR ================= */}
         <div className="d-flex justify-content-between align-items-center border-top pt-3 mt-3 bg-white">
 
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={() => setShowEdit(true)}
-          >
-            Edit Member
-          </button>
+          <div className="d-flex flex-wrap gap-2">
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => setShowEdit(true)}
+              disabled={confirmDelete || deleting}
+            >
+              Edit Member
+            </button>
+            {canDelete && (
+              <button
+                className="btn btn-outline-danger btn-sm"
+                type="button"
+                onClick={() => {
+                  setConfirmDelete(true);
+                  setDeleteError("");
+                }}
+                disabled={confirmDelete || deleting}
+              >
+                <i className="bi bi-trash me-1" aria-hidden="true" />
+                Delete Member
+              </button>
+            )}
+          </div>
 
           <button
             className="btn btn-outline-secondary btn-sm"
             onClick={onClose}
+            disabled={deleting}
           >
             Close
           </button>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Member, MemberForm } from "../../shared/types";
-import { getMembers, createMember, updateMember } from "../api/members";
+import { getMembers, createMember, updateMember, deleteMember } from "../api/members";
 
 export const useMembers = () => {
   const queryClient = useQueryClient();
@@ -41,6 +41,14 @@ export const useMembers = () => {
     return updateMemberMutation({ id, data });
   };
 
+  /* ================= DELETE ================= */
+  const { mutateAsync: deleteMemberMutation } = useMutation({
+    mutationFn: deleteMember,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["members"] });
+    },
+  });
+
   /* ================= FILTERED MEMBERS ================= */
   const filteredMembers = useMemo(() => {
     return members.filter((m) =>
@@ -74,6 +82,7 @@ export const useMembers = () => {
     updateMember: updateMemberHandler, // ✅ IMPORTANT
 
     updating,
+    deleteMember: deleteMemberMutation,
 
     stats,
   };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import StatCard from "../../features/app/layout/StatCard";
 import WeeklyChart from "../../features/dashboard/components/Charts/WeeklyChart";
 import StatusChart from "../../features/dashboard/components/Charts/StatusChart";
@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 type RecentPayment = {
   id: number;
+  member_id?: number;
   first_name?: string;
   last_name?: string;
   member_code?: string;
@@ -25,7 +26,40 @@ export default function Dashboard() {
   const [paymentsTrend, setPaymentsTrend] = useState<{ labels: string[]; data: number[] } | null>(null);
   const [memberStats, setMemberStats] = useState<number[] | undefined>(undefined);
   const [recentPayments, setRecentPayments] = useState<RecentPayment[]>([]);
+  const [allPayments, setAllPayments] = useState<RecentPayment[]>([]);
   const navigate = useNavigate();
+
+  const strongestMonth = useMemo(() => {
+    if (!paymentsTrend?.data.length) return "No collection data available";
+
+    const peakIndex = paymentsTrend.data.reduce(
+      (bestIndex, amount, index, amounts) => amount > amounts[bestIndex] ? index : bestIndex,
+      0
+    );
+
+    if (paymentsTrend.data[peakIndex] <= 0) return "No collections recorded";
+    return `${paymentsTrend.labels[peakIndex]} · ₱${paymentsTrend.data[peakIndex].toLocaleString()}`;
+  }, [paymentsTrend]);
+
+  const topPayer = useMemo(() => {
+    const payerTotals = new Map<number, { name: string; total: number }>();
+
+    for (const payment of allPayments) {
+      if (payment.member_id == null) continue;
+
+      const current = payerTotals.get(payment.member_id) ?? {
+        name: [payment.first_name, payment.last_name].filter(Boolean).join(" ") || payment.member_code || "Member",
+        total: 0,
+      };
+      current.total += Number(payment.amount) || 0;
+      payerTotals.set(payment.member_id, current);
+    }
+
+    const leader = [...payerTotals.values()].sort((a, b) => b.total - a.total)[0];
+    return leader && leader.total > 0
+      ? `${leader.name} · ₱${leader.total.toLocaleString()}`
+      : "No payment data available";
+  }, [allPayments]);
 
   useEffect(() => {
     async function fetchAnalytics() {
@@ -39,7 +73,7 @@ export default function Dashboard() {
           totalMembers: String(t.totalMembers ?? "-"),
           totalPayments: t.totalPayments ? `₱${t.totalPayments.toLocaleString()}` : "-",
           activeMembers: String(t.activeMembers ?? "-"),
-          pendingBalance: t.pendingBalance ? `₱${t.pendingBalance.toLocaleString()}` : "-",
+          pendingBalance: `₱${Number(t.pendingBalance ?? 0).toLocaleString()}`,
         });
 
         setPaymentsTrend({ labels: paymentsRes.data.labels || [], data: paymentsRes.data.data || [] });
@@ -49,7 +83,9 @@ export default function Dashboard() {
         try {
           const paymentsRes = await api.get("/payments");
           if (paymentsRes.data && paymentsRes.data.success) {
-            setRecentPayments((paymentsRes.data.data || []).slice(0, 5));
+            const payments: RecentPayment[] = paymentsRes.data.data || [];
+            setAllPayments(payments);
+            setRecentPayments(payments.slice(0, 5));
           }
         } catch (pErr) {
           console.warn("Failed to load recent payments", pErr);
@@ -110,22 +146,22 @@ export default function Dashboard() {
               <div className="insight-item">
                 <i className="bi bi-check-circle-fill text-success fs-5"></i>
                 <div>
-                  <strong>Most active month</strong>
-                  <div className="text-muted">April</div>
+                  <strong>Highest collection month</strong>
+                  <div className="text-muted">{strongestMonth}</div>
                 </div>
               </div>
               <div className="insight-item">
                 <i className="bi bi-trophy-fill text-warning fs-5"></i>
                 <div>
-                  <strong>Top payer</strong>
-                  <div className="text-muted">Maria Santos</div>
+                  <strong>Top contributor (all time)</strong>
+                  <div className="text-muted">{topPayer}</div>
                 </div>
               </div>
               <div className="insight-item">
-                <i className="bi bi-graph-up-arrow text-info fs-5"></i>
+                <i className="bi bi-exclamation-circle text-info fs-5"></i>
                 <div>
-                  <strong>Pending growth</strong>
-                  <div className="text-muted">+5% relative to last month</div>
+                  <strong>Total outstanding balance</strong>
+                  <div className="text-muted">{totals.pendingBalance}</div>
                 </div>
               </div>
             </div>

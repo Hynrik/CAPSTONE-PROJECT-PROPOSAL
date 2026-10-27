@@ -4,6 +4,7 @@ import ViewMemberModal from "../../features/members/components/modals/ViewMember
 import type { Member, MemberForm } from "../../features/shared/types";
 import { useMembers } from "../../features/members/hooks/useMembers";
 import { useMemo, useState } from "react";
+import { usePermissions } from "../../features/shared/api/hooks/usePermissions";
 
 export default function Members() {
   const {
@@ -13,8 +14,11 @@ export default function Members() {
     setSearch,
     addMember,
     updateMember,
+    deleteMember,
     stats,
   } = useMembers();
+  const permissions = usePermissions();
+  const canDeleteMembers = permissions.includes("members.manage");
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -42,6 +46,16 @@ export default function Members() {
 
     await updateMember(selectedMember.id, updated);
 
+    setShowViewModal(false);
+    setSelectedMember(null);
+  };
+
+  const handleDeleteMember = async () => {
+    if (!selectedMember) {
+      throw new Error("No member is selected for deletion.");
+    }
+
+    await deleteMember(selectedMember.id);
     setShowViewModal(false);
     setSelectedMember(null);
   };
@@ -264,6 +278,8 @@ export default function Members() {
         }}
         member={selectedMember}
         onUpdate={handleUpdateMember}
+        onDelete={handleDeleteMember}
+        canDelete={canDeleteMembers}
       />
     </div>
   );
